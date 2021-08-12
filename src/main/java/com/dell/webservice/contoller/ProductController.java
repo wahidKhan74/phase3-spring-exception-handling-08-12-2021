@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dell.webservice.entity.Product;
+import com.dell.webservice.exception.InvalidProductException;
+import com.dell.webservice.exception.ProductAlreadyExistException;
+import com.dell.webservice.exception.ProductNotFoundException;
 
 @RestController
 @RequestMapping("/api")
@@ -31,7 +34,7 @@ public class ProductController {
 				return product;
 			}
 		}
-		return null;
+		throw new ProductNotFoundException("Product does not exist with id "+id);
 	}
 
 	// get one product by name
@@ -42,18 +45,30 @@ public class ProductController {
 				return product;
 			}
 		}
-		return null;
+		throw new ProductNotFoundException("Product does not exist with name ' "+name+"'");
 	}
 
 	// get all product
 	@GetMapping("/products")
 	public List<Product> getAllProducts() {
+		if(products.isEmpty()) {
+			throw new ProductNotFoundException("Product list is  empty !");
+		}
 		return products;
 	}
 
 	// create a product
 	@PostMapping("/products")
 	public List<Product> addProduct(@RequestBody(required = false) Product productObj) {
+		if(productObj==null) {
+			throw new InvalidProductException("Product body cannot be empty !");
+		}
+		//validation for product already exist.
+		for (Product product : products) {
+			if (product.getId() == productObj.getId()) {
+				throw new ProductAlreadyExistException(" Product already exist with id "+productObj.getId());
+			}
+		}
 		products.add(productObj);
 		return products;
 	}
@@ -67,7 +82,7 @@ public class ProductController {
 				return products.get(i);
 			}
 		}
-		return null;
+		throw new ProductNotFoundException("Product does not exist with id "+id);
 	}
 	
 	// delete product
@@ -79,7 +94,7 @@ public class ProductController {
 				return products;
 			}
 		}
-		return null;
+		throw new ProductNotFoundException("Product does not exist with id "+id);
 	}
 	
 }
